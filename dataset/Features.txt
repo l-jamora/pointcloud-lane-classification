@@ -1,0 +1,25 @@
+Here we provide ou with the features of the dataset, some features might be sensible, others may be less sensible, this selection and further extraction of features is up to you. 
+
+Features: 
+0  local x
+1  local y
+2  local z
+3  red values
+4  green values
+5  blue values
+6  global x
+7  global y
+8  global z
+9  intensity
+10 number of lidar returns
+11 planarity
+12 linearity
+13 sphericity
+14 verticality
+15 mean intensity in 0.3m increments along y 
+16 mean intensity in 1.5m increments along y 
+17 mean intensity in 0.3m increments along x 
+18 mean intensity in 1.5m increments along x 
+19 edge area 
+20 grid increment index 0.3m resolution
+21 intensity principal gradient positions
