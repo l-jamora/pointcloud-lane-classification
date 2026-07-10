@@ -1,0 +1,8 @@
+# Core - used by src/data.py, needed by every milestone that imports it
+numpy
+scikit-learn # sklearn
+
+# EDA / notebooks only - not imported by src/
+pandas       # tables (describe, value_counts) in notebooks/01_eda.ipynb
+matplotlib   # plots in notebooks/01_eda.ipynb
+ipykernel    # run notebooks/ in Jupyter

@@ -1,0 +1,21 @@
+# Local Claude plan docs (not shared with the team)
+claude/
+
+# Dataset (large binaries, stays local per CLAUDE.md)
+dataset/**/*.npy
+
+# Scratch output from get_txt_for_visualization.py
+testinf.txt
+
+# EDA outputs (regenerable)
+outputs/
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+
+# Editors / OS
+.vscode/
+.DS_Store
