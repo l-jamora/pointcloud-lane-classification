@@ -34,6 +34,16 @@ Learning-first: every implementation decision should be understood by the team, 
 Train / val / test split: **80 / 15 / 5**
 Metrics: accuracy, precision, recall, IoU (per-class and weighted)
 
+## Getting Started
+
+```bash
+pip install -r requirements.txt
+jupyter notebook notebooks/01_eda.ipynb   # M1 EDA: class distribution, feature stats, BEV plots
+```
+
+`src/data.py` is the shared loader — `get_splits()` builds and freezes the 80/15/5
+train/val/test split (`splits.json`) the first time it's called; every later run reuses it.
+
 ## Team
 
 Luis Jamora · Lukas Hammerschick

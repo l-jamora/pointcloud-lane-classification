@@ -10,10 +10,10 @@ Target: classify road scenes from airborne LiDAR point clouds.
 ## M1 — Setup & EDA
 **Goal:** Understand the data before modelling.
 
-- [ ] Write data loader for `.npy` files
-- [ ] Compute per-feature statistics (mean, std, range) per class
-- [ ] Visualize sample point clouds (BEV + intensity overlay)
-- [ ] Document class distribution and imbalance
+- [x] Write data loader for `.npy` files
+- [x] Compute per-feature statistics (mean, std, range) per class
+- [x] Visualize sample point clouds (BEV + intensity overlay)
+- [x] Document class distribution and imbalance
 
 ---
 

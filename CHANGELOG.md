@@ -7,6 +7,17 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Added
+- `src/data.py` — dataset loader: class/label mapping, `list_samples`, `load_points`,
+  and a frozen stratified 80/15/5 `get_splits` (stratified on class label because of
+  the ~3.6:1 class imbalance)
+- `notebooks/01_eda.ipynb` — M1 EDA: class distribution, per-feature stats per class,
+  BEV + intensity visualizations for sample tiles
+- `splits.json` — frozen train/val/test split (committed so the test set is fixed
+  across the team from M1 onward)
+- `requirements.txt`, `.gitignore`
+- `claude/plans/` — local Claude plan documentation (gitignored)
+
 ---
 
 ## [0.1.0] - 2026-06-23
