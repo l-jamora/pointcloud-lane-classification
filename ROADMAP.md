@@ -20,7 +20,7 @@ Target: classify road scenes from airborne LiDAR point clouds.
 ## M2 — Baseline (1D Feature Extraction)
 **Goal:** Fast, interpretable first result using per-cloud feature vectors.
 
-- [ ] Engineer per-cloud aggregate features (mean, std, percentiles of key channels)
+- [x] Engineer per-cloud aggregate features (mean, std, percentiles of key channels)
 - [ ] Train sklearn classifiers (Random Forest, SVM, etc.)
 - [ ] Evaluate: accuracy, precision, recall, IoU (weighted & per-class)
 - [ ] Select best baseline model
