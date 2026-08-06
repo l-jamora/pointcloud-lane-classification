@@ -1,4 +1,4 @@
-"""Per-cloud feature engineering for the M2 baseline (ROADMAP M2).
+"""Per-cloud feature engineering.
 
 Road blocks are point clouds with a variable number of points, but sklearn
 classifiers expect one fixed-length row per sample. This module bridges that
@@ -7,23 +7,21 @@ vector by aggregating a subset of the raw per-point columns (see
 `dataset/Features.txt`) with summary statistics, plus a few explicitly
 engineered geometric features.
 
-Column choices are informed by notebooks/01_eda.ipynb:
-- `global_x`, `global_y`, `global_z` are excluded on purpose. They encode
-  *where* a tile sits on the map, not what it looks like. A classifier that
+Column choices are informed by EDA:
+- `global_x`, `global_y`, `global_z` are excluded. They encode
+  where a tile sits on the map, not what it looks like. A classifier that
   latched onto absolute position could fit the training tiles perfectly
   without learning anything about lane geometry, and would fail on a road
   segment the model hasn't seen before.
 - `local_y` is excluded from the per-column stats because blocks are cut to
-  a fixed length along the driving direction (see CLAUDE.md) and carries
-  little class signal on its own; we still use it once, to compute
-  `y_range`, as a sanity check.
+  a fixed length along the driving direction and carries
+  little class information on its own.
 - `grid_index_0.3m` is a per-point bookkeeping index (which 0.3m grid cell a
-  point falls into), not a physical quantity, so aggregating it directly
-  (e.g. its mean) is meaningless. We don't use it here.
+  point falls into), not a physical quantity, so aggregating it
+  (e.g. its mean) is meaningless and the value is excluded.
 - `mean_intensity_0.3m_y`, `mean_intensity_0.3m_x`, and `edge_area` have a
-  mean of ~0 in *every* class (see 01_eda.ipynb section 2) — a strong hint
-  they are already centered/differenced signals. Their `mean` stat is kept
-  below for completeness, but expect `std`/percentiles to carry the actual
+  mean of ~0 in every class (see EDA). Their `mean` stat is kept
+   for completeness, but `std`/percentiles are expectedto carry the actual
   signal for these three columns.
 """
 
