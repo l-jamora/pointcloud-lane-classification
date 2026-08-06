@@ -22,6 +22,18 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   other classes by lane count, intensity/geometry stats carry more of that signal, and
   a correlation check flags `mean`/`p50` pairs (and `x_range`/planarity/linearity) as
   redundant
+- `src/metrics.py` — accuracy/precision/recall/IoU (weighted & per-class), computed
+  directly from a confusion matrix rather than via `sklearn.metrics`, shared across
+  milestones so M3's CNN can be compared against M2 on identical metrics
+- `src/baseline.py` — M2 baseline: trains Random Forest and SVM (`StandardScaler` +
+  `SVC`, both `class_weight="balanced"`) on `src/features.py` vectors, evaluates on the
+  val split, and selects the best model by weighted IoU
+- `notebooks/03_baseline.ipynb` — trains/compares both baselines, cross-checks
+  `src/metrics.py` against `sklearn.metrics` (exact match), and picks `random_forest`
+  (val accuracy 0.765, weighted IoU 0.629) over `svm`; `transition`/`crossing` are the
+  weakest classes for both models, consistent with `02_feature_engineering.ipynb`'s
+  finding that `x_range` doesn't cleanly separate them — the concrete baseline for M3
+  to beat
 - `splits.json` — frozen train/val/test split (committed so the test set is fixed
   across the team from M1 onward)
 - `requirements.txt`, `.gitignore`

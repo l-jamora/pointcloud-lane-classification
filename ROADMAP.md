@@ -21,9 +21,9 @@ Target: classify road scenes from airborne LiDAR point clouds.
 **Goal:** Fast, interpretable first result using per-cloud feature vectors.
 
 - [x] Engineer per-cloud aggregate features (mean, std, percentiles of key channels)
-- [ ] Train sklearn classifiers (Random Forest, SVM, etc.)
-- [ ] Evaluate: accuracy, precision, recall, IoU (weighted & per-class)
-- [ ] Select best baseline model
+- [x] Train sklearn classifiers (Random Forest, SVM, etc.)
+- [x] Evaluate: accuracy, precision, recall, IoU (weighted & per-class)
+- [x] Select best baseline model
 
 ---
 

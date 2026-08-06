@@ -3,6 +3,6 @@ numpy
 scikit-learn # sklearn
 
 # EDA / notebooks only - not imported by src/
-pandas       # tables (describe, value_counts) in notebooks/01_eda.ipynb, 02_feature_engineering.ipynb
-matplotlib   # plots in notebooks/01_eda.ipynb, 02_feature_engineering.ipynb
+pandas       # tables (describe, value_counts) in notebooks/01_eda.ipynb, 02_feature_engineering.ipynb, 03_baseline.ipynb
+matplotlib   # plots in notebooks/01_eda.ipynb, 02_feature_engineering.ipynb, 03_baseline.ipynb
 ipykernel    # run notebooks/ in Jupyter
