@@ -37,6 +37,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - `splits.json` — frozen train/val/test split (committed so the test set is fixed
   across the team from M1 onward)
 - `requirements.txt`, `.gitignore`
+- `.gitattributes` — forces LF line endings for all text files on every platform,
+  so Windows checkouts no longer show whole-file diffs on cross-OS edits
 - `claude/plans/` — local Claude plan documentation (gitignored)
 
 ---
