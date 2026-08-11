@@ -1,0 +1,24 @@
+# Line-ending normalisation.
+#
+# Why: the team works across Windows and Linux. Without this, files copied or
+# checked out on Windows pick up CRLF endings, and Git — which compares files
+# byte-for-byte — reports every single line as modified. A one-line edit then
+# shows up as a whole-file rewrite in the diff, which makes review impossible.
+#
+# `text=auto` tells Git to detect which files are text (as opposed to binary),
+# and `eol=lf` tells it to store *and* check out those files with LF endings on
+# every platform. Modern Windows editors handle LF fine, so there is no reason
+# to keep CRLF in the working tree either.
+* text=auto eol=lf
+
+# Explicitly binary: never touch these bytes, never try to diff them as text.
+# .npy files stay local per CLAUDE.md, but the rule guards against an accidental
+# commit corrupting one through line-ending translation.
+*.npy binary
+*.png binary
+*.jpg binary
+*.pdf binary
+
+# Notebooks are JSON (text), so they normalise like any other text file, but
+# marking them keeps the intent explicit for anyone reading this file.
+*.ipynb text eol=lf
