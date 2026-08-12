@@ -34,6 +34,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   weakest classes for both models, consistent with `02_feature_engineering.ipynb`'s
   finding that `x_range` doesn't cleanly separate them — the concrete baseline for M3
   to beat
+- `notebooks/00_project_summary.ipynb` — presentation-ready condensation of
+  `01_eda.ipynb`–`03_baseline.ipynb`: at-a-glance dataset stats, class distribution and
+  one example tile per class (shared physical scale), the `x_range` finding, and the
+  baseline model comparison/confusion matrix/per-class IoU; ends with a key-takeaways
+  and M3 next-steps summary
 - `splits.json` — frozen train/val/test split (committed so the test set is fixed
   across the team from M1 onward)
 - `requirements.txt`, `.gitignore`
