@@ -2,7 +2,7 @@
 
 Turns one tile's raw points into a fixed-channel, variable-size 2D grid by
 binning points into `resolution`-metre cells over the local x/y plane
-(driving direction is y, see CLAUDE.md). Each cell gets 3 channels:
+(driving direction is y). Each cell gets 3 channels:
 
 - density: point count in the cell (compressed with log1p -- cell counts are
   heavy-tailed, and log1p keeps the scale comparable to the other channels
