@@ -39,6 +39,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   one example tile per class (shared physical scale), the `x_range` finding, and the
   baseline model comparison/confusion matrix/per-class IoU; ends with a key-takeaways
   and M3 next-steps summary
+- `src/bev.py` — M3 BEV grid conversion: bins a tile's points into a variable-size,
+  3-channel (density, mean height, mean intensity) grid at a configurable cell
+  resolution (default 0.3m); grid extent is read off each tile rather than cropped
+  or padded to one fixed window, since train-split extents vary widely (x_range
+  ~5-30m, y_range ~2-25m)
+- `src/cnn.py` — M3 `LaneCNN`: a small purpose-built CNN (~99K params, vs. ~11.2M for
+  a from-scratch ResNet-18) with global adaptive pooling before the classifier, so it
+  accepts any grid `H, W` from `src/bev.py` with no cropping/padding/resizing;
+  `ceil_mode=True` on every pool keeps small grids (down to ~7 cells) from collapsing
+  to a zero spatial dimension
+- `notebooks/04_bev_cnn.ipynb` — implements and verifies the first two M3 sub-goals
+  only (BEV converter + CNN architecture; training is a later step): measures tile
+  extent to justify the variable-size grid design, visualizes BEV channels for an
+  example tile, and stress-tests the network's forward pass on the smallest/largest
+  real grids in the train split
 - `splits.json` — frozen train/val/test split (committed so the test set is fixed
   across the team from M1 onward)
 - `requirements.txt`, `.gitignore`

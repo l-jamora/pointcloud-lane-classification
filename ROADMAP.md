@@ -30,8 +30,8 @@ Target: classify road scenes from airborne LiDAR point clouds.
 ## M3 — BEV CNN
 **Goal:** Leverage spatial structure via 2D occupancy grids.
 
-- [ ] Implement BEV converter (xy-plane occupancy grid, configurable resolution)
-- [ ] Choose/implement CNN architecture (e.g. ResNet-18 via PyTorch)
+- [x] Implement BEV converter (xy-plane occupancy grid, configurable resolution)
+- [x] Choose/implement CNN architecture (e.g. ResNet-18 via PyTorch)
 - [ ] Train with 80/15 split; monitor val loss
 - [ ] Compare metrics against M2 baseline
 

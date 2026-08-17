@@ -13,9 +13,12 @@ Column choices are informed by EDA:
   latched onto absolute position could fit the training tiles perfectly
   without learning anything about lane geometry, and would fail on a road
   segment the model hasn't seen before.
-- `local_y` is excluded from the per-column stats because blocks are cut to
-  a fixed length along the driving direction and carries
-  little class information on its own.
+- `local_y` is excluded from the per-column stats. Within a tile, points sit
+  roughly uniformly along the driving direction regardless of class
+  (normalized percentiles land close to [0.05, 0.25, 0.5, 0.75, 0.95] for
+  every class), so its mean/std/percentiles mostly re-encode that tile's own
+  `y_range` and offset rather than adding class signal. `y_range` itself is
+  kept as one of the explicit engineered features below.
 - `grid_index_0.3m` is a per-point bookkeeping index (which 0.3m grid cell a
   point falls into), not a physical quantity, so aggregating it
   (e.g. its mean) is meaningless and the value is excluded.
