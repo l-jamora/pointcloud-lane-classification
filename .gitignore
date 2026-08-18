@@ -1,5 +1,6 @@
 # Local Claude plan docs (not shared with the team)
 claude/
+.claude/
 
 # Dataset (large binaries, stays local per CLAUDE.md)
 dataset/**/*.npy
@@ -14,7 +15,7 @@ outputs/
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
-.venv/
+.venv*/
 
 # Editors / OS
 .vscode/

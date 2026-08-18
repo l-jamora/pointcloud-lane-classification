@@ -5,6 +5,26 @@ Target: classify road scenes from airborne LiDAR point clouds.
 
 **Split:** 80% train / 15% val / 5% test
 
+### Where the code lives
+
+`src/` is flat on purpose — modules are grouped by responsibility, not by
+milestone, because most of them are used across several. This table is the
+milestone mapping.
+
+| File | Milestones | Role |
+|------|-----------|------|
+| `src/data.py` | M1–M5 | Sample listing, `.npy` loading, class constants, frozen 80/15/5 split |
+| `src/metrics.py` | M2, M3, M5 | Accuracy / precision / recall / IoU — one implementation so all models are scored identically |
+| `src/features.py` | M2, M4 | Per-cloud aggregate feature vectors for the sklearn baseline |
+| `src/baseline.py` | M2, M5 | Random Forest / SVM training and model selection |
+| `src/bev.py` | M3–M5 | Point cloud → bird's-eye-view grid conversion |
+| `src/cnn.py` | M3–M5 | `LaneCNN` architecture |
+| `src/train.py` | M3–M5 | CNN training loop, class weighting, val-loss monitoring |
+| `tests/test_train.py` | M3–M5 | Invariants for the training loop (loss normalisation, batch-size constraint, train/eval consistency) |
+
+M4 and M5 add no new modules: M4 tunes the M2/M3 code above, M5 runs it once
+against the sealed test set.
+
 ---
 
 ## M1 — Setup & EDA
@@ -32,8 +52,10 @@ Target: classify road scenes from airborne LiDAR point clouds.
 
 - [x] Implement BEV converter (xy-plane occupancy grid, configurable resolution)
 - [x] Choose/implement CNN architecture (e.g. ResNet-18 via PyTorch)
-- [ ] Train with 80/15 split; monitor val loss
-- [ ] Compare metrics against M2 baseline
+- [x] Train with 80/15 split; monitor val loss
+- [x] Compare metrics against M2 baseline — CNN val accuracy 0.770 / weighted IoU 0.638
+      vs. random forest 0.765 / 0.629. Level-pegging, not a win: the accuracy gap is
+      one tile out of 213. Still overfits (train acc 0.94); M4 levers below
 
 ---
 

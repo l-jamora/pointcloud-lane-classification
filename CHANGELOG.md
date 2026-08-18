@@ -54,12 +54,47 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   extent to justify the variable-size grid design, visualizes BEV channels for an
   example tile, and stress-tests the network's forward pass on the smallest/largest
   real grids in the train split
+- `src/train.py` — M3 training loop: class-weighted `CrossEntropyLoss` + Adam, one tile
+  per batch (grids vary in size and padding them corrupts predictions — see below), BEV
+  grids converted once up front instead of per epoch, val loss/accuracy measured every
+  epoch and the lowest-val-loss checkpoint restored at the end
+- `tests/test_train.py` — pins the three invariants that make the val number meaningful:
+  the epoch loss equals a single whole-split forward pass, a batch of mismatched grid
+  sizes raises rather than being silently padded, and `train()`/`eval()` return identical
+  logits
+- `notebooks/04_bev_cnn.ipynb` — extended with the remaining two M3 sub-goals: training on
+  the frozen 80/15 split with train-vs-val loss curves, and the comparison against M2.
+  Result: the CNN's best checkpoint (epoch 25) reaches val accuracy 0.770 / weighted IoU
+  0.638 vs. the random forest's 0.765 / 0.629 — level-pegging rather than a win, since the
+  accuracy gap is a single tile out of 213. Train accuracy reaches 0.94 while val plateaus
+  near 0.75, so it still overfits 1140 tiles. M4 levers: augmentation, more BEV channels,
+  regularisation
 - `splits.json` — frozen train/val/test split (committed so the test set is fixed
   across the team from M1 onward)
 - `requirements.txt`, `.gitignore`
 - `.gitattributes` — forces LF line endings for all text files on every platform,
   so Windows checkouts no longer show whole-file diffs on cross-OS edits
 - `claude/plans/` — local Claude plan documentation (gitignored)
+
+### Fixed
+- `src/cnn.py` — replaced `nn.BatchNorm2d` with `nn.GroupNorm` (parameter count unchanged
+  at ~99K). BatchNorm is incompatible with this milestone's variable-size BEV grids:
+  batching them requires zero-padding to a common H, W, and the norm layer's learned
+  offset turns the padded zeros into a non-zero constant that the next conv mixes into
+  real cells — 136 of 213 val tiles changed prediction between batch size 16 and 1.
+  Avoiding the padding with `batch_size=1` then broke BatchNorm the other way, since it
+  normalises per-tile while training but by accumulated running averages at `eval()`: the
+  same 8-epoch weights scored 0.662 val accuracy in train mode and 0.127 in eval mode.
+  GroupNorm normalises within each sample, so it is batch-size independent and identical
+  in both modes. None of this raised an exception — it produced plausible-looking
+  accuracies that were not measuring what they claimed to
+- `src/train.py` — epoch loss is normalised by the summed class weights, not the sample
+  count: `CrossEntropyLoss(reduction="mean")` with `weight=` divides each batch by
+  `sum_n w_{y_n}` per the PyTorch docs, so scaling by batch size and dividing by N mixed
+  two normalisations and produced a loss no batch had measured — the same loss that
+  selected the "best" checkpoint
+- `src/train.py` — `class_weights` clamps class counts to a minimum of 1, so a class
+  absent from a label subset yields a finite weight instead of `inf` (and a `nan` loss)
 
 ---
 
