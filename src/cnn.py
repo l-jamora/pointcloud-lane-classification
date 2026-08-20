@@ -12,7 +12,14 @@ import torch
 import torch.nn as nn
 
 
-NORM_GROUPS = 8  # divides 16, 32, 64 and 128, this network's channel counts
+NORM_GROUPS = 8  # divides every channel count below, and M4's wider variants
+
+# (16, 32, 64, 128) is the M3 architecture: three pooling conv blocks feeding a
+# final un-pooled conv. M4 searches over alternatives, e.g. (16, 32, 64) for a
+# shallower net or (32, 64, 128, 256) for a wider one. Any value here must be
+# divisible by NORM_GROUPS or nn.GroupNorm raises -- loudly, which is what we
+# want rather than a silent reshape.
+DEFAULT_CHANNELS = (16, 32, 64, 128)
 
 
 def _norm(channels: int) -> nn.GroupNorm:
@@ -73,20 +80,33 @@ class LaneCNN(nn.Module):
     through the conv stack (see `_norm`). `src/train.py` trains one tile at a
     time; a batch of mismatched grids raises in PyTorch's default collate
     rather than being silently padded.
+
+    `channels` sets the per-stage width and, through its length, the depth --
+    see `DEFAULT_CHANNELS`.
     """
 
-    def __init__(self, in_channels: int = 3, n_classes: int = 6):
+    def __init__(
+        self,
+        in_channels: int = 3,
+        n_classes: int = 6,
+        channels: tuple[int, ...] = DEFAULT_CHANNELS,
+    ):
         super().__init__()
+        # Every entry but the last becomes a pooling conv block; the last is a
+        # plain conv with no pool, because the global average pool right after
+        # already collapses the spatial dimensions. `channels` is what M4's
+        # depth/width search varies -- the default reproduces the M3 network
+        # exactly, so M3's numbers stay reproducible.
+        widths = (in_channels, *channels)
+        blocks = [_conv_block(widths[i], widths[i + 1]) for i in range(len(channels) - 1)]
         self.features = nn.Sequential(
-            _conv_block(in_channels, 16),
-            _conv_block(16, 32),
-            _conv_block(32, 64),
-            nn.Conv2d(64, 128, kernel_size=3, padding=1),
-            _norm(128),
+            *blocks,
+            nn.Conv2d(widths[-2], widths[-1], kernel_size=3, padding=1),
+            _norm(widths[-1]),
             nn.ReLU(inplace=True),
         )
         self.pool = nn.AdaptiveAvgPool2d(1)
-        self.classifier = nn.Linear(128, n_classes)
+        self.classifier = nn.Linear(channels[-1], n_classes)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.features(x)

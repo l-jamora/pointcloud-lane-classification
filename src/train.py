@@ -32,8 +32,8 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from src.bev import build_bev_grids
-from src.cnn import LaneCNN
+from src.bev import RESOLUTION_M, build_bev_grids, mirror_x
+from src.cnn import DEFAULT_CHANNELS, LaneCNN
 from src.data import CLASSES, get_splits
 from src.metrics import evaluate
 
@@ -41,6 +41,7 @@ SEED = 42
 EPOCHS = 40
 BATCH_SIZE = 1  # see module docstring: >1 requires padding, which corrupts predictions
 LEARNING_RATE = 1e-3
+WEIGHT_DECAY = 0.0  # M4 tunes this; 0.0 makes AdamW identical to plain Adam
 
 
 def class_weights(labels: np.ndarray, n_classes: int = len(CLASSES)) -> torch.Tensor:
@@ -111,6 +112,10 @@ def train(
     seed: int = SEED,
     splits: dict | None = None,
     verbose: bool = True,
+    resolution: float = RESOLUTION_M,
+    weight_decay: float = WEIGHT_DECAY,
+    augment: bool = False,
+    channels: tuple[int, ...] = DEFAULT_CHANNELS,
 ) -> dict:
     """Train LaneCNN on the train split, monitoring val loss each epoch.
 
@@ -120,13 +125,29 @@ def train(
     the network starting to memorise the 1140 training tiles. Keeping the best
     checkpoint is early stopping without stopping early -- we still run all
     epochs so the full curve is visible in `history`.
+
+    The M4 tuning knobs -- `resolution`, `weight_decay`, `augment`, `channels`
+    -- all default to the M3 settings, so calling `train()` with no arguments
+    still reproduces the M3 result (best epoch 25, val accuracy 0.770).
+    `src/tune.py` is what sweeps them.
     """
     torch.manual_seed(seed)  # reproducible weight init and batch shuffling
     if splits is None:
         splits = get_splits()
 
-    train_grids, train_labels, _ = build_bev_grids(splits["train"])
-    val_grids, val_labels, _ = build_bev_grids(splits["val"])
+    train_grids, train_labels, _ = build_bev_grids(splits["train"], resolution=resolution)
+    val_grids, val_labels, _ = build_bev_grids(splits["val"], resolution=resolution)
+
+    if augment:
+        # Mirroring across the road is label-preserving (see bev.mirror_x), so
+        # each tile yields a second, different training example for free. Only
+        # the train split is augmented -- val has to stay the same 213 tiles
+        # every run or the metric stops being comparable across configs.
+        train_grids = train_grids + [mirror_x(g) for g in train_grids]
+        train_labels = np.concatenate([train_labels, train_labels])
+        # Doubling every class leaves the class *ratios* untouched, so
+        # class_weights below returns exactly what it would have returned on
+        # the un-augmented labels.
 
     # No collate_fn: PyTorch's default stacks same-shaped samples and raises on
     # mismatched ones, which is the behaviour we want -- at batch_size=1 every
@@ -143,9 +164,16 @@ def train(
         shuffle=False,  # order is irrelevant when only measuring
     )
 
-    model = LaneCNN(in_channels=train_grids[0].shape[0], n_classes=len(CLASSES))
+    model = LaneCNN(
+        in_channels=train_grids[0].shape[0], n_classes=len(CLASSES), channels=channels
+    )
     criterion = nn.CrossEntropyLoss(weight=class_weights(train_labels))
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    # AdamW rather than Adam: it applies weight decay straight to the weights
+    # instead of folding it into the gradient (and from there into Adam's
+    # momentum and variance estimates, where it gets rescaled per-parameter and
+    # stops acting like the L2 penalty it is meant to be). At weight_decay=0.0
+    # the two are identical, so the M3 default is unaffected.
+    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
 
     history, best = [], {"val_loss": float("inf")}
     for epoch in range(1, epochs + 1):
@@ -184,6 +212,11 @@ def train(
         "history": history,
         "best_epoch": best["epoch"],
         "report": evaluate(y_va, p_va, CLASSES),
+        # Reported because `augment` silently changes it: the notebook and
+        # tests both need to see that mirroring actually doubled the split
+        # rather than being accepted and ignored.
+        "n_train": len(train_grids),
+        "n_val": len(val_grids),
     }
 
 
