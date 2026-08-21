@@ -84,3 +84,19 @@ def build_bev_grids(
         labels.append(label)
         paths.append(rel_path)
     return grids, np.array(labels, dtype=np.int64), paths
+
+
+def mirror_x(grid: np.ndarray) -> np.ndarray:
+    """Flip a `(C, H, W)` BEV grid across the road, for M4 augmentation.
+
+    `points_to_bev` puts y (the driving direction) on rows and x (across the
+    road) on columns, so reversing the last axis mirrors left/right and leaves
+    the direction of travel untouched. That is label-preserving for all six
+    classes -- a 4-lane split seen from the opposite side is still a 4-lane
+    split -- which is what makes this a valid way to double the training set
+    rather than a way to inject label noise.
+
+    `.copy()` because reversing a numpy axis produces a negative-strided view,
+    and `torch.from_numpy` rejects those.
+    """
+    return grid[:, :, ::-1].copy()
