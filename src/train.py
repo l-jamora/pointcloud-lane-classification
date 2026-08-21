@@ -105,6 +105,25 @@ def _run_epoch(model, loader, criterion, optimizer=None) -> tuple[float, np.ndar
     return total_loss / total_weight, np.concatenate(y_true), np.concatenate(y_pred)
 
 
+def predict(model: LaneCNN, grids: list[np.ndarray]) -> np.ndarray:
+    """Label predictions for a trained model on any list of BEV grids.
+
+    Separate from `train()`'s internal val evaluation (which only ever
+    scores the split `train()` itself built, for checkpoint selection) so an
+    already-trained model can be scored against a *different* split -- e.g.
+    the sealed test set at M5 -- without retraining. One grid at a time,
+    same reasoning as `train()`'s `batch_size=1`: grids vary in size, so
+    there is no batch to stack.
+    """
+    model.eval()
+    preds = []
+    with torch.no_grad():
+        for grid in grids:
+            logits = model(torch.from_numpy(grid).unsqueeze(0))
+            preds.append(int(logits.argmax(dim=1).item()))
+    return np.array(preds, dtype=np.int64)
+
+
 def train(
     epochs: int = EPOCHS,
     batch_size: int = BATCH_SIZE,

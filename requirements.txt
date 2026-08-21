@@ -3,8 +3,8 @@ numpy
 scikit-learn # sklearn
 
 # EDA / notebooks only - not imported by src/
-pandas       # tables (describe, value_counts) in notebooks/00_project_summary.ipynb, 01_eda.ipynb, 02_feature_engineering.ipynb, 03_baseline.ipynb, 04_bev_cnn.ipynb
-matplotlib   # plots in notebooks/00_project_summary.ipynb, 01_eda.ipynb, 02_feature_engineering.ipynb, 03_baseline.ipynb, 04_bev_cnn.ipynb
+pandas       # tables (describe, value_counts) in notebooks/00_project_summary.ipynb, 01_eda.ipynb, 02_feature_engineering.ipynb, 03_baseline.ipynb, 04_bev_cnn.ipynb, 05_optimization.ipynb, 06_final_evaluation.ipynb
+matplotlib   # plots in notebooks/00_project_summary.ipynb, 01_eda.ipynb, 02_feature_engineering.ipynb, 03_baseline.ipynb, 04_bev_cnn.ipynb, 05_optimization.ipynb, 06_final_evaluation.ipynb
 ipykernel    # run notebooks/ in Jupyter
 
 # M3 - CNN on BEV grids (src/cnn.py, notebooks/04_bev_cnn.ipynb)

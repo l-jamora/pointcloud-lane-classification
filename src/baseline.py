@@ -18,8 +18,14 @@ from src.metrics import evaluate
 RANDOM_STATE = 42
 
 
-def get_models() -> dict:
+def get_models(seed: int = RANDOM_STATE) -> dict:
     """Candidate classifiers for the baseline.
+
+    `seed` sets both models' `random_state` (default `RANDOM_STATE`, every
+    existing caller's behaviour is unchanged). Exposed so M5 can refit the
+    forest over several seeds for the sealed-test report -- its splits are
+    randomised, unlike the SVM's decision boundary -- without duplicating
+    `n_estimators=500, max_features=0.3` anywhere else.
 
     Random Forest splits on per-feature thresholds, so it is scale
     invariant and needs no preprocessing. SVC is distance-based: without
@@ -62,11 +68,11 @@ def get_models() -> dict:
             n_estimators=500,
             max_features=0.3,
             class_weight="balanced",
-            random_state=RANDOM_STATE,
+            random_state=seed,
         ),
         "svm": make_pipeline(
             StandardScaler(),
-            SVC(C=100, gamma=0.01, class_weight="balanced", random_state=RANDOM_STATE),
+            SVC(C=100, gamma=0.01, class_weight="balanced", random_state=seed),
         ),
     }
 

@@ -102,8 +102,29 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   the across-road axis (not the driving direction), `channels` changes capacity while
   still accepting any grid size, `augment` doubles the train split and leaves val alone,
   and AdamW at `weight_decay=0.0` is step-for-step identical to the Adam it replaced
+- `src/train.py::predict` — label predictions for a trained model on any list of BEV grids,
+  separate from `train()`'s internal (val-only) evaluation, so a trained model can be scored
+  against a split it never saw during training; verified to reproduce `train()`'s own val
+  report exactly before being trusted on test (`tests/test_train.py`)
+- `src/final_eval.py` — M5 final test-set evaluation: refits the M4-tuned random forest over
+  10 seeds and the SVM once, retrains the M4-best CNN (0.5 m grid) over 5 seeds, and scores
+  each on the sealed test split for the first and only time in the project. No hyperparameter
+  is chosen or adjusted based on what test returns — every config was already frozen by M4.
+  Writes `results/m5_test_eval.json`
+- `notebooks/06_final_evaluation.ipynb` — M5: the full val-vs-test comparison table (all
+  approaches × all metrics, with spreads) and per-class test breakdown. Result: the tuned
+  random forest is the project's final model at 0.656 ± 0.017 weighted IoU on test (val:
+  0.645 ± 0.011) — 0.073 ahead of the CNN (0.583 ± 0.023 test, down from 0.619 ± 0.012 val,
+  roughly the decline M4 predicted). The SVM is the real surprise: 0.625 val → 0.523 test,
+  the project's sharpest drop — its tuned `C=100` bought val performance at the cost of
+  generalisation, an overfit only a sealed, previously-untouched split could expose
+- `notebooks/00_project_summary.ipynb` — condensed M5 val-vs-test comparison, and the
+  "Key takeaways"/"Next steps" sections rewritten to report the test-confirmed final
+  standing instead of M4's val-only numbers
 
 ### Changed
+- `src/baseline.py::get_models` — takes an optional `seed` (default unchanged), so M5 can
+  refit the forest across seeds without duplicating its tuned hyperparameters elsewhere
 - `src/baseline.py` — both baselines tuned by manual, targeted search around the M4 error
   analysis, scored against val (not an automated `GridSearchCV` — no such search exists in
   the repo, and the notebook this was originally written from turned out to have never

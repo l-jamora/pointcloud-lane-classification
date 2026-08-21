@@ -13,19 +13,18 @@ milestone mapping.
 
 | File | Milestones | Role |
 |------|-----------|------|
-| `src/data.py` | M1–M5 | Sample listing, `.npy` loading, class constants, frozen 80/15/5 split |
-| `src/metrics.py` | M2, M3, M5 | Accuracy / precision / recall / IoU — one implementation so all models are scored identically |
+| `src/data.py` | M1–M5 | Sample listing, `.npy` loading, class constants, frozen 80/15/5 split; `random_split` (M1 only, illustrative) |
+| `src/metrics.py` | M2–M5 | Accuracy / precision / recall / IoU — one implementation so all models are scored identically |
 | `src/features.py` | M2, M4 | Per-cloud aggregate feature vectors for the sklearn baseline |
-| `src/baseline.py` | M2, M5 | Random Forest / SVM training and model selection |
+| `src/baseline.py` | M2, M4, M5 | Random Forest / SVM training and model selection |
 | `src/bev.py` | M3–M5 | Point cloud → bird's-eye-view grid conversion |
 | `src/cnn.py` | M3–M5 | `LaneCNN` architecture |
-| `src/train.py` | M3–M5 | CNN training loop, class weighting, val-loss monitoring |
-| `src/tune.py` | M4, M5 | Staged coordinate search + seed repeats; writes `results/m4_tuning.json` |
-| `tests/test_train.py` | M3–M5 | Invariants for the training loop (loss normalisation, batch-size constraint, train/eval consistency, tuning knobs) |
+| `src/train.py` | M3–M5 | CNN training loop, class weighting, val-loss monitoring, `predict` for scoring a trained model on any split |
+| `src/tune.py` | M4 | Staged coordinate search + seed repeats; writes `results/m4_tuning.json` |
+| `src/final_eval.py` | M5 | Runs the M4-winning configs once against the sealed test split; writes `results/m5_test_eval.json` |
+| `tests/test_train.py` | M3–M5 | Invariants for the training loop (loss normalisation, batch-size constraint, train/eval consistency, tuning knobs, `predict` vs. `train()`'s own val report) |
 | `results/m4_tuning.json` | M4, M5 | Every run of the M4 search, so results are re-readable without re-running |
-
-M5 adds no new modules: it runs the M4 configurations once against the sealed
-test set.
+| `results/m5_test_eval.json` | M5 | The one-time sealed-test evaluation, so the comparison table is re-readable without re-running |
 
 ---
 
@@ -117,8 +116,25 @@ measures in-sample split quality, not generalisation.
 ## M5 — Final Evaluation & Report
 **Goal:** Honest test-set assessment and clean submission.
 
-- [ ] Run final models on held-out test set (no further tuning after this) — report the
-      CNN over several seeds, not as a single run (see M4)
-- [ ] Comparison table: all approaches × all metrics, with spreads
+- [x] Run final models on held-out test set (no further tuning after this) — random forest
+      refit over 10 seeds, SVM once (deterministic), CNN retrained over 5 seeds; see
+      `src/final_eval.py` / `results/m5_test_eval.json`
+- [x] Comparison table: all approaches × all metrics, with spreads — `notebooks/06_final_evaluation.ipynb`
 - [ ] Clean up code; add docstrings to public functions
 - [ ] Write final report
+
+### Test-set result
+
+| model | val weighted IoU | test weighted IoU |
+|---|---|---|
+| **random forest** | 0.645 ± 0.011 (10 seeds) | **0.656 ± 0.017** (10 seeds) |
+| svm | 0.625 (1 fit) | 0.523 (1 fit) |
+| cnn (0.5 m grid) | 0.619 ± 0.012 (5 seeds) | 0.583 ± 0.023 (5 seeds) |
+
+**The tuned random forest is the project's final model** — 0.073 ahead of the CNN on test,
+clearing M4's own "0.06 is not a finding" bar. It did not drop from val to test at all
+(within its own seed spread); the CNN dropped as M4 predicted (checkpoint-selection
+optimism); the SVM dropped hardest (0.625 → 0.523) — `C=100` won on val by trading away
+regularisation, a val-overfit only a sealed, untouched split could expose. `split4lanes`
+(8 test tiles) was unexpectedly the weakest class on test for every model — read as sampling
+noise from a small per-class test count, not a new failure mode, per `01_eda.ipynb` §5.

@@ -18,10 +18,11 @@ from torch.utils.data import DataLoader
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.bev import mirror_x  # noqa: E402
+from src.bev import build_bev_grids, mirror_x  # noqa: E402
 from src.cnn import LaneCNN  # noqa: E402
-from src.data import get_splits  # noqa: E402
-from src.train import _run_epoch, class_weights, train  # noqa: E402
+from src.data import CLASSES, get_splits  # noqa: E402
+from src.metrics import evaluate  # noqa: E402
+from src.train import _run_epoch, class_weights, predict, train  # noqa: E402
 
 
 def test_class_weights():
@@ -191,6 +192,29 @@ def test_augment_doubles_the_train_split_and_leaves_val_alone():
     assert plain["n_val"] == augmented["n_val"] == 2  # val untouched
 
 
+def test_predict_matches_trains_internal_val_evaluation():
+    """`predict()` must reproduce exactly what `train()` itself measured on val.
+
+    M5 uses `predict()` to score a trained model against the sealed test
+    split, which `train()` never sees. Before trusting it on data that only
+    gets looked at once, this pins that it reproduces a number `train()`
+    already computed a different way (via `_run_epoch`) on data it can be
+    checked against as often as needed -- val, not test.
+    """
+    splits = get_splits()
+    tiny = {"train": splits["train"][:60], "val": splits["val"][:40], "test": []}
+
+    result = train(epochs=2, splits=tiny, verbose=False)
+    val_grids, val_labels, _ = build_bev_grids(tiny["val"])
+
+    y_pred = predict(result["model"], val_grids)
+    report = evaluate(val_labels, y_pred, CLASSES)
+
+    assert report["accuracy"] == result["report"]["accuracy"]
+    for metric in ("precision", "recall", "iou"):
+        assert np.isclose(report["weighted"][metric], result["report"]["weighted"][metric])
+
+
 def test_weight_decay_default_leaves_m3_behaviour_unchanged():
     """AdamW at weight_decay=0.0 must match the Adam it replaced, step for step.
 
@@ -230,5 +254,6 @@ if __name__ == "__main__":
     test_mirror_flips_across_the_road_not_along_it()
     test_channels_parameter_changes_capacity_and_still_forwards()
     test_augment_doubles_the_train_split_and_leaves_val_alone()
+    test_predict_matches_trains_internal_val_evaluation()
     test_weight_decay_default_leaves_m3_behaviour_unchanged()
     print("ok")
