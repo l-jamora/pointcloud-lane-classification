@@ -102,3 +102,33 @@ def get_splits(
     with open(path, "w") as f:
         json.dump(splits, f, indent=2)
     return splits
+
+
+def random_split(
+    samples: list[tuple[str, str, int]] | None = None,
+    ratios: tuple[float, float, float] = (0.80, 0.15, 0.05),
+    seed: int = 0,
+) -> dict[str, list[tuple[str, str, int]]]:
+    """Build one *unstratified* random train/val/test split.
+
+    Never frozen and never used for training or evaluation -- exists only so
+    notebooks/01_eda.ipynb and notebooks/00_project_summary.ipynb can show,
+    by contrast, what get_splits()'s stratification protects against: an
+    unlucky draw can leave a rare class (crossing, the smallest at 133
+    tiles) with very few val/test examples, where the frozen stratified
+    split guarantees a fixed, proportional count every time.
+
+    Same two-step `train_test_split` mechanics as `get_splits()` (train vs
+    rest, then val vs test, since the function only splits two groups at a
+    time), just without `stratify=` and without persisting to disk -- every
+    call with a different `seed` gives a different split.
+    """
+    if samples is None:
+        samples = list_samples()
+
+    train_ratio, val_ratio, test_ratio = ratios
+    train, rest = train_test_split(samples, test_size=(val_ratio + test_ratio), random_state=seed)
+    val, test = train_test_split(
+        rest, test_size=test_ratio / (val_ratio + test_ratio), random_state=seed
+    )
+    return {"train": train, "val": val, "test": test}

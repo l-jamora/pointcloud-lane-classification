@@ -11,8 +11,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - `src/data.py` — dataset loader: class/label mapping, `list_samples`, `load_points`,
   and a frozen stratified 80/15/5 `get_splits` (stratified on class label because of
   the ~3.6:1 class imbalance)
+- `src/data.py::random_split` — an *unstratified* random split with the same 80/15/5
+  mechanics as `get_splits`, never frozen and never used for training/evaluation; exists
+  only to quantify, by contrast, what stratification protects against
 - `notebooks/01_eda.ipynb` — M1 EDA: class distribution, per-feature stats per class,
-  BEV + intensity visualizations for sample tiles
+  BEV + intensity visualizations for sample tiles; §5 compares the frozen stratified split
+  against 500 random-split seeds — a random split's worst-represented test class has a
+  median of 5 tiles vs. the stratified split's guaranteed 7, and 91% of random seeds do at
+  least as badly, confirming stratification isn't a marginal choice on this dataset
+- `notebooks/00_project_summary.ipynb` — condensed version of the same stratified-vs-random
+  comparison, inserted after the dataset section
 - `src/features.py` — M2 per-cloud feature engineering: aggregates 16 raw columns
   (mean/std/percentiles) plus explicit `n_points`/`x_range`/`y_range`/`point_density`
   into one fixed-length vector per tile; `global_x/y/z` deliberately excluded to avoid
