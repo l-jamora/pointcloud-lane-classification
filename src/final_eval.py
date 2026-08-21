@@ -2,9 +2,10 @@
 
 Runs the three M4-winning configurations against the sealed test split, for
 the first and only time in the project. Every hyperparameter below was
-already fixed by M4 (`ROADMAP.md` "Best configs") using only train/val --
-nothing here is chosen or adjusted based on what the test split returns.
-`ROADMAP.md`/`CLAUDE.md`: freeze the test set, never tune against it.
+already fixed by M4 using only train/val (`ROADMAP.md` "Best configs"
+records the frozen configs) -- nothing here is chosen or adjusted based on
+what the test split returns. The test set is frozen precisely so it can be
+used this way exactly once.
 
 Random forest and CNN are each refit/retrained over several seeds and
 scored individually, because both have a randomised training procedure (the
@@ -28,7 +29,7 @@ from src.features import build_feature_matrix
 from src.metrics import evaluate
 from src.train import predict, train
 
-RF_SEEDS = tuple(range(10))  # matches notebooks/05_optimization.ipynb's iou_over_seeds
+RF_SEEDS = tuple(range(10))  # matches the seed count M4 used to characterise the forest's val-side spread
 CNN_SEEDS = (0, 1, 2, 3, 4)  # matches src/tune.py's repeat() default
 CNN_RESOLUTION = 0.5  # the only CNN change that survived M4 seed testing
 
@@ -84,9 +85,9 @@ def _jsonable(report: dict) -> dict:
 def main(splits: dict | None = None) -> dict:
     """Run all three evaluations once, write them to `RESULTS_PATH`, and return them.
 
-    Written to disk (like `results/m4_tuning.json`) so `notebooks/06_final_evaluation.ipynb`
-    reads this instead of re-running it -- the test split should be touched
-    by code exactly once, not once per notebook execution.
+    Written to disk (like `results/m4_tuning.json`) so downstream code can
+    read the result back instead of re-running this -- the test split
+    should be touched by code exactly once, not once per read of the result.
     """
     if splits is None:
         splits = get_splits()

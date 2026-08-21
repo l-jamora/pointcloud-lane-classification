@@ -17,8 +17,8 @@ NORM_GROUPS = 8  # divides every channel count below, and M4's wider variants
 # (16, 32, 64, 128) is the M3 architecture: three pooling conv blocks feeding a
 # final un-pooled conv. M4 searches over alternatives, e.g. (16, 32, 64) for a
 # shallower net or (32, 64, 128, 256) for a wider one. Any value here must be
-# divisible by NORM_GROUPS or nn.GroupNorm raises -- loudly, which is what we
-# want rather than a silent reshape.
+# divisible by NORM_GROUPS or nn.GroupNorm raises -- loudly, which is the
+# intended behaviour rather than a silent reshape.
 DEFAULT_CHANNELS = (16, 32, 64, 128)
 
 

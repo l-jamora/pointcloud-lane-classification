@@ -22,10 +22,11 @@ Column choices are informed by EDA:
 - `grid_index_0.3m` is a per-point bookkeeping index (which 0.3m grid cell a
   point falls into), not a physical quantity, so aggregating it
   (e.g. its mean) is meaningless and the value is excluded.
-- `mean_intensity_0.3m_y`, `mean_intensity_0.3m_x`, and `edge_area` have a
-  mean of ~0 in every class (see EDA). Their `mean` stat is kept
-   for completeness, but `std`/percentiles are expectedto carry the actual
-  signal for these three columns.
+- `mean_intensity_0.3m_y`, `mean_intensity_0.3m_x`, and `edge_area` measure
+  a mean of essentially 0 (~1e-18) in every class -- consistent with being
+  already centered/differenced signals rather than raw magnitudes. Their
+  `mean` stat is kept for completeness, but `std`/percentiles are expected
+  to carry the actual signal for these three columns.
 """
 
 import numpy as np

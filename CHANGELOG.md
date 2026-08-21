@@ -139,6 +139,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   knob. Identical behaviour at the default `weight_decay=0.0`, pinned by a test
 - `ROADMAP.md` — M3's reported CNN result flagged as superseded: 0.638 weighted IoU was a
   single lucky run, and the same config averages 0.594 ± 0.031 over 5 seeds
+- `src/*.py` — M5 code-cleanup pass: every docstring that pointed at a specific notebook for
+  the actual substance (`data.py`, `bev.py`, `metrics.py`, `baseline.py`, `train.py`,
+  `tune.py`, `final_eval.py`) now states that substance inline instead, so each module reads
+  standalone; the one `CLAUDE.md` citation (`final_eval.py`) was replaced with the rule
+  itself. Remaining first-person phrasing ("we", "us") neutralized across `data.py`,
+  `cnn.py`, `train.py`. Dropped an unused `CLASSES` import in `tune.py` and two unused
+  `train_ratio` bindings in `data.py`. Added the one missing test docstring
+  (`test_class_weights`) and tidied a malformed module docstring (`baseline.py`)
 
 ### Measured, and rejected
 - **12 "change along the road" features** (per-third `x_range`/`intensity_mean`/`point_share`

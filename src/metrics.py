@@ -7,8 +7,9 @@ baselines and later the CNN without modification.
 Implemented directly from the confusion matrix instead of calling
 `sklearn.metrics.classification_report`/`jaccard_score`, so the formulas
 behind precision/recall/IoU are visible rather than hidden inside a library
-call. `notebooks/03_baseline.ipynb` cross-checks the output against sklearn's
-implementation as a correctness check.
+call. Cross-checked once against sklearn's own `accuracy_score`/
+`precision_score`/`recall_score`/`jaccard_score` (`average="weighted"`) and
+found to match exactly.
 """
 
 import numpy as np
@@ -56,8 +57,9 @@ def evaluate(y_true: np.ndarray, y_pred: np.ndarray, class_names: list[str]) -> 
     true instances), divided by total support -- so a class with more val
     samples counts more, the same convention as sklearn's
     `average="weighted"`. That matters here because of the dataset's ~3.6:1
-    class imbalance (see notebooks/01_eda.ipynb): unweighted averaging would
-    let a class with 30 val samples move the score as much as one with 200.
+    class imbalance across the 6 road-scene classes: unweighted averaging
+    would let a class with 30 val samples move the score as much as one
+    with 200.
     """
     n_classes = len(class_names)
     cm = confusion_matrix(y_true, y_pred, n_classes)

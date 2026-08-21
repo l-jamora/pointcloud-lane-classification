@@ -2,8 +2,7 @@
 
 Trains scikit-learn classifiers on the fixed-length feature vectors from
 `src/features.py` and evaluates them on the validation split. The frozen
-test split from `src/data.py` stays untouched until final evaluation
-
+test split from `src/data.py` stays untouched until final evaluation.
 """
 
 from sklearn.ensemble import RandomForestClassifier
@@ -35,18 +34,18 @@ def get_models(seed: int = RANDOM_STATE) -> dict:
     wrapped in a StandardScaler first.
 
     `class_weight="balanced"` reweights both models inversely to class
-    frequency during training, to offset the ~3.6:1 class imbalance
-    documented in notebooks/01_eda.ipynb. M4 additionally experiments with
-    balanced subsampling of the dataset itself, a different lever on the
-    same problem.
+    frequency during training, to offset the dataset's ~3.6:1 class
+    imbalance (473 `2lanes` tiles vs. 133 `crossing`). M4 additionally
+    experiments with balanced subsampling of the dataset itself, a
+    different lever on the same problem.
 
     **Hyperparameters (M4).** Both settings below come from manual, targeted
-    search around the diagnostics in `notebooks/05_optimization.ipynb`
-    (feature importance for the forest, the SVM's under-penalised defaults),
-    scored against val -- the same discipline every other model-selection
-    decision in this project uses (`src/tune.py`'s coordinate search, the
-    CNN's per-epoch checkpoint), not an automated `GridSearchCV`. Test stays
-    sealed regardless. Weighted IoU on val went:
+    search guided by error diagnostics -- feature importance for the forest,
+    comparing the SVM's defaults against what its errors implied -- not an
+    automated `GridSearchCV`, scored against val, the same discipline every
+    other model-selection decision in this project uses (`src/tune.py`'s
+    coordinate search, the CNN's per-epoch checkpoint). Test stays sealed
+    regardless. Weighted IoU on val went:
 
         random forest   0.612 -> 0.645  (mean over 10 seeds; a forest's splits are randomised)
         svm              0.492 -> 0.625  (single fit; deterministic given fixed data/hyperparameters)

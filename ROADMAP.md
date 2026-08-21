@@ -120,7 +120,9 @@ measures in-sample split quality, not generalisation.
       refit over 10 seeds, SVM once (deterministic), CNN retrained over 5 seeds; see
       `src/final_eval.py` / `results/m5_test_eval.json`
 - [x] Comparison table: all approaches × all metrics, with spreads — `notebooks/06_final_evaluation.ipynb`
-- [ ] Clean up code; add docstrings to public functions
+- [x] Clean up code; add docstrings to public functions — every public function/class in
+      `src/` documented; module docstrings no longer depend on a notebook or `CLAUDE.md`
+      for context, so each file stands on its own
 - [ ] Write final report
 
 ### Test-set result

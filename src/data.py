@@ -40,8 +40,8 @@ SPLITS_PATH = Path(__file__).resolve().parent.parent / "splits.json"
 def list_samples(root: Path = DATASET_ROOT) -> list[tuple[str, str, int]]:
     """Scan class folders for .npy files without loading them.
 
-    Returns (relative_path, class_name, label) tuples. We only list paths
-    here (not load arrays) because the full dataset is ~1 GB and most
+    Returns (relative_path, class_name, label) tuples. Only paths are listed
+    here (not loaded arrays) because the full dataset is ~1 GB and most
     operations (e.g. building the split) only need to know which files
     exist, not their contents.
     """
@@ -67,16 +67,17 @@ def get_splits(
     """Return the frozen {"train", "val", "test"} sample split.
 
     If `path` already exists, load and return it as-is — this is the freeze
-    mechanism: once splits.json is committed, re-running this function (by
-    us or a teammate) reproduces the exact same test set instead of re-
-    rolling it. Only builds a new split when no file exists yet.
+    mechanism: once splits.json is committed, re-running this function (on
+    any machine, by any teammate) reproduces the exact same test set instead
+    of re-rolling it. Only builds a new split when no file exists yet.
 
     Splitting is stratified on class label via sklearn's train_test_split,
     which wraps ShuffleSplit and preserves per-class ratios when given
     `stratify=`. That matters here: classes range from 133 to 473 samples
     (~3.6:1), so a plain random split could easily under/over-represent a
-    class in a given split. We split twice (train vs rest, then val vs
-    test) because train_test_split only produces two groups at a time.
+    class in a given split (`random_split` below quantifies how badly).
+    Splitting happens twice -- train vs rest, then val vs test -- because
+    train_test_split only produces two groups at a time.
     """
     path = Path(path)
     if path.exists():
@@ -86,7 +87,7 @@ def get_splits(
     samples = list_samples()
     labels = [s[2] for s in samples]
 
-    train_ratio, val_ratio, test_ratio = ratios
+    _, val_ratio, test_ratio = ratios
     train, rest = train_test_split(
         samples, test_size=(val_ratio + test_ratio), stratify=labels, random_state=seed
     )
@@ -111,12 +112,14 @@ def random_split(
 ) -> dict[str, list[tuple[str, str, int]]]:
     """Build one *unstratified* random train/val/test split.
 
-    Never frozen and never used for training or evaluation -- exists only so
-    notebooks/01_eda.ipynb and notebooks/00_project_summary.ipynb can show,
-    by contrast, what get_splits()'s stratification protects against: an
-    unlucky draw can leave a rare class (crossing, the smallest at 133
-    tiles) with very few val/test examples, where the frozen stratified
-    split guarantees a fixed, proportional count every time.
+    Never frozen and never used for training or evaluation -- exists only to
+    illustrate, by contrast, what `get_splits()`'s stratification protects
+    against: an unlucky draw can leave a rare class (`crossing`, the
+    smallest at 133 tiles) with very few val/test examples, where the
+    frozen stratified split guarantees a fixed, proportional count every
+    time. Comparing many `random_split` seeds against the one frozen
+    `get_splits()` result quantifies how often, and how badly, an unlucky
+    draw actually happens on this dataset.
 
     Same two-step `train_test_split` mechanics as `get_splits()` (train vs
     rest, then val vs test, since the function only splits two groups at a
@@ -126,7 +129,7 @@ def random_split(
     if samples is None:
         samples = list_samples()
 
-    train_ratio, val_ratio, test_ratio = ratios
+    _, val_ratio, test_ratio = ratios
     train, rest = train_test_split(samples, test_size=(val_ratio + test_ratio), random_state=seed)
     val, test = train_test_split(
         rest, test_size=test_ratio / (val_ratio + test_ratio), random_state=seed

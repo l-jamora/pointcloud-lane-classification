@@ -4,8 +4,10 @@ A **staged coordinate search**, not a full grid: four stages of three or four
 runs, each stage sweeping one axis and passing its winner into the next. A
 3-axis cross product would be 27+ runs, and with only 213 validation tiles a
 difference of 2 percentage points is four tiles -- resolving a cross product to
-that precision would mostly be fitting the noise in the val split. The notebook
-says this out loud rather than implying an exhaustive search happened.
+that precision would mostly be fitting the noise in the val split. Every stage
+is named and every run's config is written to `results/m4_tuning.json` (see
+`_append_results`), so this stays auditable as a staged search rather than
+presented as an exhaustive one.
 
 **Why this runs on CPU while the machine has an RTX 4060.** Timed on 120 real
 tiles, one training pass costs:
@@ -34,7 +36,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from src.data import CLASSES, get_splits
+from src.data import get_splits
 from src.train import train
 
 WORKERS = 5  # x THREADS_PER_RUN = 20 = core count
@@ -123,8 +125,8 @@ def _append_results(stage: str, records: list[dict]) -> None:
     """Write a stage's records to the results file, replacing any earlier run of the same stage.
 
     Written incrementally so a crash in stage D does not cost stages A-C, and
-    so the notebook can plot the entire search -- losing configs included --
-    without re-running anything.
+    so the entire search -- losing configs included -- stays re-readable and
+    plottable without re-running anything.
 
     Re-running a stage (e.g. re-executing a `repeat()` cell in a later
     session) drops that stage's previous records before writing the new
@@ -163,10 +165,9 @@ def repeat(configs: dict[str, dict], seeds: tuple[int, ...] = (0, 1, 2, 3, 4)) -
         runs = [{**config, "seed": seed, "label": f"{name} seed={seed}"} for seed in seeds]
         run_stage(f"repeat-{name}", runs)  # prints the per-seed table as it goes
         ious = np.array([r["weighted_iou"] for r in _last_stage(f"repeat-{name}")])
-        # ddof=1 (sample std, N-1 denominator): matches pandas' default .std(),
-        # which is what notebooks/05_optimization.ipynb uses to report these
-        # spreads. numpy's default is ddof=0 (population std) and would print
-        # a smaller, non-matching number here.
+        # ddof=1 (sample std, N-1 denominator): the conventional choice for
+        # reporting a sample's spread, and pandas' own .std() default.
+        # numpy's default is ddof=0 (population std) and would understate it.
         std = float(ious.std(ddof=1))
         summary[name] = {"mean": float(ious.mean()), "std": std, "n": len(ious)}
         print(f"  == {name}: iou {ious.mean():.3f} +/- {std:.3f} over {len(ious)} seeds")

@@ -12,8 +12,8 @@ Three decisions that are specific to this dataset:
    is roughly 100 MB of float32, which fits comfortably.
 
 2. **One tile per batch** (`BATCH_SIZE = 1`). Grids vary in size per tile
-   (see notebooks/04_bev_cnn.ipynb) and a tensor batch must be one rectangular
-   block, so batching would require zero-padding to a common H, W. That
+   (`src/bev.py`) and a tensor batch must be one rectangular block, so
+   batching would require zero-padding to a common H, W. That
    padding is not inert -- see `LaneCNN`'s docstring for the measurement: it
    made 136 of 213 val predictions depend on which tiles shared their batch.
    Feeding one grid at a time removes the question entirely, and costs only
@@ -142,8 +142,8 @@ def train(
     the epoch with the *lowest val loss*, not the last epoch: val loss usually
     bottoms out and then climbs again while train loss keeps falling, which is
     the network starting to memorise the 1140 training tiles. Keeping the best
-    checkpoint is early stopping without stopping early -- we still run all
-    epochs so the full curve is visible in `history`.
+    checkpoint is early stopping without stopping early -- training still runs
+    for all epochs so the full curve is visible in `history`.
 
     The M4 tuning knobs -- `resolution`, `weight_decay`, `augment`, `channels`
     -- all default to the M3 settings, so calling `train()` with no arguments
@@ -169,7 +169,7 @@ def train(
         # the un-augmented labels.
 
     # No collate_fn: PyTorch's default stacks same-shaped samples and raises on
-    # mismatched ones, which is the behaviour we want -- at batch_size=1 every
+    # mismatched ones, which is the intended behaviour -- at batch_size=1 every
     # "batch" is one grid, and any larger batch fails loudly instead of being
     # silently padded (see module docstring).
     train_loader = DataLoader(
@@ -231,9 +231,9 @@ def train(
         "history": history,
         "best_epoch": best["epoch"],
         "report": evaluate(y_va, p_va, CLASSES),
-        # Reported because `augment` silently changes it: the notebook and
-        # tests both need to see that mirroring actually doubled the split
-        # rather than being accepted and ignored.
+        # Reported because `augment` silently changes it: callers and tests
+        # both need to see that mirroring actually doubled the split rather
+        # than being accepted and ignored.
         "n_train": len(train_grids),
         "n_val": len(val_grids),
     }

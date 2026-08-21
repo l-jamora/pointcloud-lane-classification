@@ -16,10 +16,9 @@ binning points into `resolution`-metre cells over the local x/y plane
 
 Grid extent is derived per tile, not cropped or padded to a common window:
 across the train split, x_range spans roughly 5-30m and y_range roughly
-2-25m (see notebooks/04_bev_cnn.ipynb), so a single fixed window would
-either waste most of a typical grid on empty cells or crop the road out of
-the widest tiles. src/cnn.py's network accepts any grid size for exactly
-this reason.
+2-25m, so a single fixed window would either waste most of a typical grid
+on empty cells or crop the road out of the widest tiles. `src/cnn.py`'s
+network accepts any grid size for exactly this reason.
 """
 
 import numpy as np

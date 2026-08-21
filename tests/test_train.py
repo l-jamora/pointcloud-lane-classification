@@ -26,6 +26,13 @@ from src.train import _run_epoch, class_weights, predict, train  # noqa: E402
 
 
 def test_class_weights():
+    """Rarer classes get proportionally higher weight, and the mean weight stays 1.
+
+    Both properties are what makes `class_weights` a drop-in replacement for
+    sklearn's "balanced" formula: a wrong proportionality would under- or
+    over-correct the class imbalance, and a mean away from 1 would silently
+    rescale the whole loss rather than just redistributing it between classes.
+    """
     labels = np.array([0, 0, 0, 1])  # class 0 three times as common as class 1
     w = class_weights(labels, n_classes=2)
 
