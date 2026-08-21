@@ -121,6 +121,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - `notebooks/00_project_summary.ipynb` — condensed M5 val-vs-test comparison, and the
   "Key takeaways"/"Next steps" sections rewritten to report the test-confirmed final
   standing instead of M4's val-only numbers
+- `src/inference.py` — persists one trained copy of each final model (`models/`, ~4.8 MB
+  total: forest and SVM `joblib`-compressed, CNN a `state_dict`) and `predict_new`, an
+  inference-only path that loads a saved model and scores an arbitrary folder of `.npy`
+  tiles with no ground-truth labels or class-folder structure required — for evaluation
+  against held-out data this project has no access to. `tests/test_inference.py` pins
+  that a save/load round trip reproduces the in-memory model's predictions exactly
 
 ### Changed
 - `src/baseline.py::get_models` — takes an optional `seed` (default unchanged), so M5 can

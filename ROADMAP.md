@@ -22,9 +22,12 @@ milestone mapping.
 | `src/train.py` | M3–M5 | CNN training loop, class weighting, val-loss monitoring, `predict` for scoring a trained model on any split |
 | `src/tune.py` | M4 | Staged coordinate search + seed repeats; writes `results/m4_tuning.json` |
 | `src/final_eval.py` | M5 | Runs the M4-winning configs once against the sealed test split; writes `results/m5_test_eval.json` |
+| `src/inference.py` | M5 | Persists a trained copy of each final model (`models/`) and predicts on new, unlabeled tiles for evaluation on data outside this project |
 | `tests/test_train.py` | M3–M5 | Invariants for the training loop (loss normalisation, batch-size constraint, train/eval consistency, tuning knobs, `predict` vs. `train()`'s own val report) |
+| `tests/test_inference.py` | M5 | Pins that a saved model's predictions exactly match the in-memory model it was saved from |
 | `results/m4_tuning.json` | M4, M5 | Every run of the M4 search, so results are re-readable without re-running |
 | `results/m5_test_eval.json` | M5 | The one-time sealed-test evaluation, so the comparison table is re-readable without re-running |
+| `models/` | M5 | One persisted copy of each final model (forest/SVM as compressed `joblib`, CNN as a `state_dict`), for evaluation on data this project has no access to |
 
 ---
 
@@ -140,3 +143,13 @@ optimism); the SVM dropped hardest (0.625 → 0.523) — `C=100` won on val by t
 regularisation, a val-overfit only a sealed, untouched split could expose. `split4lanes`
 (8 test tiles) was unexpectedly the weakest class on test for every model — read as sampling
 noise from a small per-class test count, not a new failure mode, per `01_eda.ipynb` §5.
+
+### Persisted for evaluation on data outside this project
+
+The models above will also be scored on held-out data this team has no access to. `src/inference.py`
+saves one trained copy of each (`models/random_forest.joblib`, `models/svm.joblib`,
+`models/cnn.pt` — the exact fits `final_eval.py` scored, not a retrain on train+val+test) and
+provides `predict_new`, an inference-only path that needs no ground-truth labels or
+class-folder structure. `tests/test_inference.py` checks a save/load round trip reproduces
+the in-memory model's predictions exactly, so what gets handed over is provably the same
+model the numbers above describe.

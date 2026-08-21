@@ -1,6 +1,8 @@
 # Core - used by src/data.py, needed by every milestone that imports it
 numpy
 scikit-learn # sklearn
+joblib       # model persistence in src/inference.py; already a transitive scikit-learn
+             # dependency, listed explicitly since src/ now imports it directly
 
 # EDA / notebooks only - not imported by src/
 pandas       # tables (describe, value_counts) in notebooks/00_project_summary.ipynb, 01_eda.ipynb, 02_feature_engineering.ipynb, 03_baseline.ipynb, 04_bev_cnn.ipynb, 05_optimization.ipynb, 06_final_evaluation.ipynb
