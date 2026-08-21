@@ -1,6 +1,7 @@
 """Self-checks for the parts of src/train.py that are easy to get silently wrong.
 
-Run with: .venv-linux/bin/python tests/test_train.py
+Run with the project's virtualenv active: `python tests/test_train.py`
+(`.venv\\Scripts\\python` on Windows, `.venv/bin/python` on Linux/Mac).
 
 Silently wrong is the risk being covered here: neither of these defects raises
 an exception. They just produce a number that looks plausible and is not the

@@ -96,12 +96,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   and AdamW at `weight_decay=0.0` is step-for-step identical to the Adam it replaced
 
 ### Changed
-- `src/baseline.py` — both baselines tuned by 5-fold `GridSearchCV` on the **train split
-  only**, so val remains an honest estimate. Random forest `n_estimators=200 → 500` and
-  `max_features='sqrt' → 0.3` (val weighted IoU 0.612 → 0.645 over 10 seeds); SVM `C=1 → 100`
-  and `gamma='scale' → 0.01` (0.484 → 0.625). `max_features` was the decisive one: the M4
-  importance analysis found no dominant feature — the top 20 of 123 carry just 0.34 — so
-  offering each split only ~11 candidates was discarding usable signal
+- `src/baseline.py` — both baselines tuned by manual, targeted search around the M4 error
+  analysis, scored against val (not an automated `GridSearchCV` — no such search exists in
+  the repo, and the notebook this was originally written from turned out to have never
+  actually been executed). Random forest `n_estimators=200 → 500` and `max_features='sqrt' →
+  0.3` (val weighted IoU 0.612 → 0.645, mean over 10 seeds); SVM `C=1 → 100` and
+  `gamma='scale' → 0.01` (0.492 → 0.625, single deterministic fit — corrected from an
+  unverified 0.484 once `notebooks/05_optimization.ipynb` was actually re-run and the M2-default
+  SVM number was computed for the first time). `max_features` was the decisive one for the
+  forest: the M4 importance analysis found no dominant feature — the top 20 of 123 carry just
+  0.34 — so offering each split only ~11 candidates was discarding usable signal
 - `src/train.py` — optimizer `Adam` → `AdamW`, to get a correctly decoupled weight-decay
   knob. Identical behaviour at the default `weight_decay=0.0`, pinned by a test
 - `ROADMAP.md` — M3's reported CNN result flagged as superseded: 0.638 weighted IoU was a

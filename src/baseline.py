@@ -34,12 +34,16 @@ def get_models() -> dict:
     balanced subsampling of the dataset itself, a different lever on the
     same problem.
 
-    **Hyperparameters (M4).** Both settings below come from a 5-fold
-    `GridSearchCV` on the *train* split only, scored by weighted F1 -- the val
-    split was not involved in choosing them, so val remains an honest estimate.
-    Measured over 10 random seeds on val, weighted IoU went:
+    **Hyperparameters (M4).** Both settings below come from manual, targeted
+    search around the diagnostics in `notebooks/05_optimization.ipynb`
+    (feature importance for the forest, the SVM's under-penalised defaults),
+    scored against val -- the same discipline every other model-selection
+    decision in this project uses (`src/tune.py`'s coordinate search, the
+    CNN's per-epoch checkpoint), not an automated `GridSearchCV`. Test stays
+    sealed regardless. Weighted IoU on val went:
 
-        random forest   0.612 -> 0.645     svm   0.484 -> 0.625
+        random forest   0.612 -> 0.645  (mean over 10 seeds; a forest's splits are randomised)
+        svm              0.492 -> 0.625  (single fit; deterministic given fixed data/hyperparameters)
 
     For the forest the decisive parameter was `max_features=0.3`: sklearn's
     default of `sqrt` offers each split only ~11 of the 123 features, and the

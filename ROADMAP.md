@@ -105,7 +105,7 @@ of the CNN**, not behind it. Rule adopted for M5: a single-run difference below
 | CNN lr / channels | 1e-3 / (16,32,64,128) | unchanged — alternatives were worse |
 | CNN data strategy | full + weighted loss | unchanged — augmentation, weight decay and balanced subsampling all failed |
 | random forest | `n_estimators=200`, `max_features='sqrt'` | **`n_estimators=500`, `max_features=0.3`** |
-| svm | `C=1`, `gamma='scale'` | **`C=100`, `gamma=0.01`** (IoU 0.484 → 0.625) |
+| svm | `C=1`, `gamma='scale'` | **`C=100`, `gamma=0.01`** (IoU 0.492 → 0.625, single fit) |
 
 Negative results worth keeping: mirror augmentation and weight decay both narrowed the
 train/val gap without improving accuracy, and 12 "change along the road" features that

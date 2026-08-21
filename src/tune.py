@@ -120,14 +120,22 @@ def run_stage(name: str, configs: list[dict]) -> dict:
 
 
 def _append_results(stage: str, records: list[dict]) -> None:
-    """Append a stage's records to the results file, written after every stage.
+    """Write a stage's records to the results file, replacing any earlier run of the same stage.
 
     Written incrementally so a crash in stage D does not cost stages A-C, and
     so the notebook can plot the entire search -- losing configs included --
     without re-running anything.
+
+    Re-running a stage (e.g. re-executing a `repeat()` cell in a later
+    session) drops that stage's previous records before writing the new
+    ones, rather than appending next to them. Without this, `_last_stage`
+    would silently mix an old run's records into a new one's mean/std --
+    same class of bug as the ones this project has otherwise been careful
+    to test for, just in the results file instead of the training loop.
     """
     RESULTS_PATH.parent.mkdir(exist_ok=True)
     all_records = json.loads(RESULTS_PATH.read_text()) if RESULTS_PATH.exists() else []
+    all_records = [r for r in all_records if r["stage"] != stage]
     all_records.extend({"stage": stage, **r} for r in records)
     RESULTS_PATH.write_text(json.dumps(all_records, indent=2))
 
@@ -155,8 +163,13 @@ def repeat(configs: dict[str, dict], seeds: tuple[int, ...] = (0, 1, 2, 3, 4)) -
         runs = [{**config, "seed": seed, "label": f"{name} seed={seed}"} for seed in seeds]
         run_stage(f"repeat-{name}", runs)  # prints the per-seed table as it goes
         ious = np.array([r["weighted_iou"] for r in _last_stage(f"repeat-{name}")])
-        summary[name] = {"mean": float(ious.mean()), "std": float(ious.std()), "n": len(ious)}
-        print(f"  == {name}: iou {ious.mean():.3f} +/- {ious.std():.3f} over {len(ious)} seeds")
+        # ddof=1 (sample std, N-1 denominator): matches pandas' default .std(),
+        # which is what notebooks/05_optimization.ipynb uses to report these
+        # spreads. numpy's default is ddof=0 (population std) and would print
+        # a smaller, non-matching number here.
+        std = float(ious.std(ddof=1))
+        summary[name] = {"mean": float(ious.mean()), "std": std, "n": len(ious)}
+        print(f"  == {name}: iou {ious.mean():.3f} +/- {std:.3f} over {len(ious)} seeds")
     return summary
 
 
